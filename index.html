@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级视觉简历 - 交互式作品集</title>
+    <style>
+        /* 基础样式 - 苹果风极简美学 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+        
+        body {
+            background: #000;
+            color: #f5f5f7;
+            overflow-x: hidden;
+        }
+        
+        /* 导航栏 - 小米式悬浮菜单 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 24px 48px;
+            z-index: 1000;
+            mix-blend-mode: difference;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+        
+        .nav-links a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, #ff2d70, #a832d9);
+            transition: width 0.4s;
+        }
+        
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+        
+        /* 全屏滚动区块 - 苹果风布局 */
+        section {
+            height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            overflow: hidden;
+            padding: 0 10%;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 视差滚动层 */
+        .parallax-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 150%;
+            will-change: transform;
+        }
+        
+        /* 动态背景层 */
+        .dynamic-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.2s cubic-bezier(0.23, 1, 0.32, 1), 
+                        transform 6s cubic-bezier(0.23, 1, 0.32, 1);
+            background-size: cover;
+            background-position: center;
+            transform: scale(1.15);
+        }
+        
+        .dynamic-bg.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* 内容区域 - 带玻璃态效果 */
+        .content {
+            max-width: 650px;
+            z-index: 10;
+            padding: 40px;
+            background: rgba(22, 22, 26, 0.65);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 20px 48px rgba(0,0,0,0.4);
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        
+        .content.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff7ce5, #5d7cff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 24px;
+            line-height: 1.1;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 32px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.92);
+        }
+        
+        p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 32px;
+        }
+        
+        /* 进度指示器 - 苹果风 */
+        .scroll-indicator {
+            position: fixed;
+            right: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 900;
+        }
+        
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .indicator-dot.active {
+            background: linear-gradient(45deg, #ff2d70, #a832d9);
+            transform: scale(1.3);
+            box-shadow: 0 0 15px rgba(168, 50, 217, 0.7);
+        }
+        
+        /* 动态粒子背景 */
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 动态粒子背景 -->
+    <div id="particles-js"></div>
+    
+    <!-- 悬浮导航 -->
+    <nav class="navbar">
+        <div class="logo">JASON_LI</div>
+        <div class="nav-links">
+            <a href="#about">关于我</a>
+            <a href="#experience">经历</a>
+            <a href="#projects">项目</a>
+            <a href="#skills">技能</a>
+            <a href="#contact">联系</a>
+        </div>
+    </nav>
+    
+    <!-- 滚动进度指示器 -->
+    <div class="scroll-indicator">
+        <div class="indicator-dot active" data-target="about"></div>
+        <div class="indicator-dot" data-target="experience"></div>
+        <div class="indicator-dot" data-target="projects"></div>
+        <div class="indicator-dot" data-target="skills"></div>
+        <div class="indicator-dot" data-target="contact"></div>
+    </div>
+    
+    <!-- 关于我 -->
+    <section id="about">
+        <div class="parallax-layer">
+            <div class="dynamic-bg active" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1950')"></div>
+        </div>
+        <div class="content visible">
+            <h1>创意开发者</h1>
+            <p>融合设计与技术的跨界开发者，专注于打造沉浸式数字体验。拥有5年全栈开发经验，擅长将复杂技术转化为直观的用户界面。</p>
+        </div>
+    </section>
+    
+    <!-- 工作经历 -->
+    <section id="experience">
+        <div class="parallax-layer">
+            <div class="dynamic-bg" style="background-image: url('https://images.unsplash.com/photo-1467232004584-a241de8b3885?auto=format&fit=crop&w=1950')"></div>
+        </div>
+        <div class="content">
+            <h2>职业旅程</h2>
+            <p>2020-2023 | 高级全栈工程师 @TechVision</p>
+            <p>领导开发团队构建企业级SaaS平台，优化系统架构使响应速度提升300%</p>
+            <p>2018-2020 | 前端架构师 @DigitalAura</p>
+            <p>设计并实现组件库，被15+产品线采用，减少40%开发时间</p>
+        </div>
+    </section>
+    
+    <!-- 项目展示 -->
+    <section id="projects">
+        <div class="parallax-layer">
+            <div class="dynamic-bg" style="background-image: url('https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=1950')"></div>
+        </div>
+        <div class="content">
+            <h2>精选作品</h2>
+            <p>NeoVision - 三维可视化平台</p>
+            <p>使用Three.js开发的实时渲染引擎，支持百万级数据点实时交互</p>
+            <p>Quantum Dashboard - 数据分析系统</p>
+            <p>整合机器学习预测模型的可视化决策支持系统</p>
+        </div>
+    </section>
+    
+    <!-- 技能展示 -->
+    <section id="skills">
+        <div class="parallax-layer">
+            <div class="dynamic-bg" style="background-image: url('https://images.unsplash.com/photo-1550439062-609e1531270e?auto=format&fit=crop&w=1950')"></div>
+        </div>
+        <div class="content">
+            <h2>技术专长</h2>
+            <p>前端：React/Vue生态链 | Three.js | GSAP动画</p>
+            <p>后端：Node.js | Python | 云原生架构</p>
+            <p>设计：Figma工作流 | 交互动效原型 | 设计系统</p>
+        </div>
+    </section>
+    
+    <!-- 联系方式 -->
+    <section id="contact">
+        <div class="parallax-layer">
+            <div class="dynamic-bg" style="background-image: url('https://images.unsplash.com/photo-1533750349081-c43986aca2e0?auto=format&fit=crop&w=1950')"></div>
+        </div>
+        <div class="content">
+            <h2>开启对话</h2>
+            <p>contact@jasonli.design | +86 138 8888 6666</p>
+            <p>上海市徐汇区创意园区B座</p>
+        </div>
+    </section>
+
+    <!-- 粒子系统库 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // 初始化粒子系统
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 70, density: { enable: true, value_area: 800 } },
+                color: { value: "#ffffff" },
+                opacity: { value: 0.05, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#ffffff",
+                    opacity: 0.02,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "grab" },
+                    onclick: { enable: true, mode: "push" }
+                }
+            }
+        });
+        
+        // 滚动视差和图片切换效果
+        const sections = document.querySelectorAll('section');
+        const dynamicBg = document.querySelectorAll('.dynamic-bg');
+        const contentBlocks = document.querySelectorAll('.content');
+        const dots = document.querySelectorAll('.indicator-dot');
+        let currentActive = 0;
+        
+        // 监听滚动事件
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.scrollY;
+            
+            // 计算当前活动区块
+            const newActive = Math.floor(scrollPosition / window.innerHeight);
+            
+            // 区块变化时触发
+            if (newActive !== currentActive) {
+                // 更新指示器状态
+                dots.forEach(dot => dot.classList.remove('active'));
+                dots[newActive].classList.add('active');
+                
+                // 更新背景图片
+                dynamicBg.forEach(bg => bg.classList.remove('active'));
+                dynamicBg[newActive].classList.add('active');
+                
+                // 内容动画触发
+                contentBlocks.forEach(block => block.classList.remove('visible'));
+                setTimeout(() => {
+                    contentBlocks[newActive].classList.add('visible');
+                }, 300);
+                
+                currentActive = newActive;
+            }
+            
+            // 视差滚动效果
+            sections.forEach((section, index) => {
+                const rect = section.getBoundingClientRect();
+                const viewportPosition = rect.top / window.innerHeight;
+                
+                if (Math.abs(viewportPosition) < 1.5) {
+                    const speedFactor = index * 0.3 + 1;
+                    const offset = rect.top * 0.2 * speedFactor;
+                    const parallaxLayer = section.querySelector('.parallax-layer');
+                    
+                    if (parallaxLayer) {
+                        parallaxLayer.style.transform = `translateY(${offset}px)`;
+                    }
+                }
+            });
+        });
+        
+        // 指示器点击导航
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const target = dot.getAttribute('data-target');
+                document.getElementById(target).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
